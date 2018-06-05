@@ -5,5 +5,5 @@ This repository contains specifications and design documents that describe
 interact.  In particular, important topics are:
 
 * The basic [blockchain consensus protocol](blockchain.md) of Chimaera.
-* How games should interact with the core blockchain.
+* How [games](games.md) should interact with the core blockchain.
 * What interface the core daemon provides for game engines.

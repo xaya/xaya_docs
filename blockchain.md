@@ -7,7 +7,7 @@ implemented by the core Chimaera daemon.
 Chimaera Core.  This document just tries to highlight the most important parts
 in an easy-to-read form!
 
-## Chimaera Is Based on Namecoin
+## Chimaera Is Based on Namecoin <a name="names"></a>
 
 Most parts of the consensus protocol of Chimaera are inherited from
 [Namecoin](https://www.namecoin.org/), which itself inherits most of the
