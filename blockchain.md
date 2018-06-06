@@ -54,11 +54,11 @@ input.**
 Some of the basic chain parameters and properties of the genesis block
 are changed in Xyon in contrast to Bitcoin and Namecoin.  In particular:
 
-* PoW mining is done based on the **Neoscrypt** algorithm instead of using
-  double SHA-256.
+* PoW mining is done based on [**triple-purpose mining**](mining.md).
 * The difficulty is updated on each block using the **DGW formula**.
 * Blocks are scheduled to be produced every **30 seconds** instead of
-  10 minutes.
+  10 minutes.  (Or rather, every minute for each of the two possible
+  [mining algorithms](mining.md).)
 * The initial block reward is set to **1 CHI**, and halves every **4.2M**
   blocks.  (This corresponds to approximately four years, just as in Bitcoin.)
   * This is the initial schedule, which is planned to be updated after the
