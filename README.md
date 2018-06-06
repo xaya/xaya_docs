@@ -1,9 +1,9 @@
-# Chimaera Specs
+# Xyon Specs
 
 This repository contains specifications and design documents that describe
 (in a technical way) how the various components and layers in the ecosystem
 interact.  In particular, important topics are:
 
-* The basic [blockchain consensus protocol](blockchain.md) of Chimaera.
+* The basic [blockchain consensus protocol](blockchain.md) of Xyon.
 * How [games](games.md) should interact with the core blockchain.
 * What interface the core daemon provides for game engines.

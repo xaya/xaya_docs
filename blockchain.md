@@ -1,19 +1,19 @@
 # Blockchain Consensus Protocol
 
 This document gives an overview of the low-level consensus protocol that is
-implemented by the core Chimaera daemon.
+implemented by the core Xyon daemon.
 
 **NOTE:**  The final reference of the protocol is the implementation of
-Chimaera Core.  This document just tries to highlight the most important parts
+Xyon Core.  This document just tries to highlight the most important parts
 in an easy-to-read form!
 
-## Chimaera Is Based on Namecoin <a name="names"></a>
+## Xyon Is Based on Namecoin <a name="names"></a>
 
-Most parts of the consensus protocol of Chimaera are inherited from
+Most parts of the consensus protocol of Xyon are inherited from
 [Namecoin](https://www.namecoin.org/), which itself inherits most of the
 [Bitcoin protocol](https://bitcoin.org/).
 
-Just like Bitcoin, Namecoin and Chimaera implement a distributed ledger by
+Just like Bitcoin, Namecoin and Xyon implement a distributed ledger by
 tracking the current set of "unspent transaction outputs".  But in addition
 to pure currency transactions, they also implement a **name-value database**.
 This database is stored and updated similarly to the UTXO set.  Each entry
@@ -21,15 +21,15 @@ contains the following fields:
 
 * **Name:**
   A byte array with [restrictions](#name-value-restrictions) that is the
-  "key" into the name-value-database.  In Chimaera, this is typically the
+  "key" into the name-value-database.  In Xyon, this is typically the
   account name of a player.
 * **Value:**
   Another, typically longer, byte array (also with
   [restrictions](#name-value-restrictions)) that holds data associated
-  with the name.  In Chimaera, this is used to store the latest moves
+  with the name.  In Xyon, this is used to store the latest moves
   or other actions the given player did.
 * **Address:**
-  Similar to transaction outputs, each name is associated to a Chimaera address
+  Similar to transaction outputs, each name is associated to a Xyon address
   (Bitcoin script) that "owns" it.  Only the owner has *write access* to this
   name's entry, while everyone can *read* it from the database.  The owner
   can send the name to a different address, either owned by her as well
@@ -44,7 +44,7 @@ We do not give specific details for the transaction format here, since this
 works the same as in Namecoin.
 
 **In contrast to Namecoin, which registers names in a two-step process
-(`name_new` and `name_firstupdate`), Chimaera's name registrations are always
+(`name_new` and `name_firstupdate`), Xyon's name registrations are always
 done by a single transaction (called `name_register`).  This transaction is
 similar to a `name_update` in Namecoin except that it does not consume a name
 input.**
@@ -52,7 +52,7 @@ input.**
 ## Basic Differences to Bitcoin
 
 Some of the basic chain parameters and properties of the genesis block
-are changed in Chimaera in contrast to Bitcoin and Namecoin.  In particular:
+are changed in Xyon in contrast to Bitcoin and Namecoin.  In particular:
 
 * PoW mining is done based on the **Neoscrypt** algorithm instead of using
   double SHA-256.
@@ -64,7 +64,7 @@ are changed in Chimaera in contrast to Bitcoin and Namecoin.  In particular:
   * This is the initial schedule, which is planned to be updated after the
     token sale to produce the correct total supply once it is determined.
 * The genesis block's coinbase transaction pays to a multisig address owned
-  by the Chimaera team.  Unlike Bitcoin and Namecoin, it is actually spendable,
+  by the Xyon team.  Unlike Bitcoin and Namecoin, it is actually spendable,
   and does not observe the usual "block maturity" rule.
   * These coins will be distributed to the community according to the token
     sale and Huntercoin snapshot.  Unsold coins will be destroyed by sending
@@ -77,7 +77,7 @@ are changed in Chimaera in contrast to Bitcoin and Namecoin.  In particular:
 
 ## Activation of Soft Forks
 
-Chimaera activates some of the soft forks introduced in Bitcoin over time
+Xyon activates some of the soft forks introduced in Bitcoin over time
 immediately (from the genesis block), since we start with a fresh chain:
 
 * [BIP 16](https://github.com/bitcoin/bips/blob/master/bip-0016.mediawiki)
@@ -97,7 +97,7 @@ to allow for certain tests to be possible.)
 
 ## Name and Value Restrictions <a name="name-value-restrictions"></a>
 
-Valid names and values in Chimaera must satisfy additional constraints
+Valid names and values in Xyon must satisfy additional constraints
 compared to Namecoin (which just enforces maximum lengths).  In particular,
 these conditions must be met by names and values:
 
