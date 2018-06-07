@@ -60,6 +60,13 @@ Furthermore, the game engine must only take into account the actual move
 value from the name update, not any other data.  It may, however, also depend
 on [*currency outputs*](#currency) created in the same transaction.**
 
+In particular, games must also not include any newly registered names into
+the game state until those names have referenced the game.  Players
+should make an explicit move with a new name that indicates to "join"
+or "create" an avatar in a particular game if they wish so.
+(But of course, game UIs may show a list of all names the player owns to offer
+them the ability to do this.)
+
 Here are some example values:
 
 * `{}`:  This is the minimal valid JSON object, and can be used as value
