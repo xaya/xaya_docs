@@ -1,0 +1,278 @@
+# Interface of the Xyon Core Daemon for Games
+
+The main interface of the Bitcoin Core daemon is through the various
+provided [JSON RPC](http://www.jsonrpc.org/) methods as well as
+[ZeroMQ](http://zeromq.org/) for
+[notifications](https://github.com/bitcoin/bitcoin/blob/master/doc/zmq.md).
+
+Xyon inherits these interfaces.  However, Xyon is very focused on providing
+the backbone for individual [game engines](games.md).  Thus it makes sense for
+us to also provide an **additional interface that is optimised for this
+purpose**, tailored specifically to our [model of games](games.md).
+
+## Sending Moves
+
+For **sending moves** to the daemon (the "write" side of the interface),
+the basic RPC methods interited and adapted from Namecoin should be used:
+
+    $ name_register p/name {}
+    $ name_update p/name {"g":{"chess":"e4"}}
+    $ name_update p/name {} {"destAddress": "CaQb9k5Amibwjuhbfd4bqdwycBMK95Mw8n"}
+
+## Keeping the Game State Up-to-Date
+
+The most important and fundamental task of each game engine is to keep the
+current game state updated with the Xyon blockchain.  For this, it needs to
+process moves from attached and detached blocks as discussed for our
+[basic model of games](games.md).
+
+### Attach and Detach Publishers <a name="attach-detach"></a>
+
+The Xyon daemon provides [ZeroMQ publishers](http://zeromq.org/) for
+**attached and detached blocks**.  They provide subscribers with all information
+needed to update the game states.
+
+For this, the daemon can be configured to **track a certain list of game IDs**.
+These are all the games that the user is interested in.  Then, for each block
+that is attached to the blockchain *and each tracked game*, the daemon sends
+out a **`game-block-attach`** message that contains all the information
+necessary for the corresponding game engine to step forward in time.
+In particular, the message looks like this:
+
+    game-block-attach GAMEID DATA
+
+This allows each game engine to subscribe to `game-block-attach GAMEID` in order
+to receive exactly the updates relevant to it.
+
+The `DATA` part is a string encoding a JSON object that contains the relevant
+information:
+
+    {
+      "parent": PREVIOUS-BLOCK-HASH,
+      "child": ATTACHED-BLOCK-HASH,
+      "moves":
+        [
+          {
+            "txid": TXID,
+            "name": UPDATED-NAME,
+            "move": MOVE,
+            "out":
+              {
+                ADDRESS1: AMOUNT1,
+                ADDRESS2: AMOUNT2,
+                ...
+              },
+          },
+          ...
+        ],
+    }
+
+The placeholders have the following meaning:
+
+* **`PREVIOUS-BLOCK-HASH`:**
+  The hash of the previously-current block, i. e., the block on top of which
+  the new one is attached.
+* **`ATTACHED-BLOCK-HASH`:**
+  The hash of the newly-attached block, i. e., the block that contains all the
+  moves listed below.
+* **`TXID`:**
+  The Xyon transaction ID of the transaction that does the given move.
+  This is mostly useful as a key and to correlate a single transaction
+  through different endpoints of the API (if necessary).
+* **`UPDATED-NAME`:**
+  The account name that performed a move, without the `p/` prefix.
+* **`MOVE`:**
+  The actual [move data](games.md#moves), as it is given in `.g[GAMEID]`
+  of the name update's value.
+* **`ADDRESS`n and `AMOUNT`n:**
+  Xyon addresses and amounts that were transacted in the move transaction,
+  as described in our model for
+  [currency transaction in games](games.md#currency).
+
+Note that not all transactions from the block are included in the `moves` list.
+It contains only those that are relevant for the current game, which are
+all **name upates and registrations that mention the game ID in its value**.
+
+Similarly, the daemon also provides a **`game-block-detach`** message for blocks
+that are detached during a reorg:
+
+    game-block-detach GAMEID DATA
+
+In this message, `DATA` is exactly the same data that was sent previously
+when the same block was attached.  This means that `DATA.child` is the hash
+of the block being detached and `DATA.parent` the block that will be current
+after the detach.
+
+The game engine needs to [undo](games.md#undoing) the
+block by either restoring the game state corresponding to `DATA.parent`
+from its archive, or backwards-processing `DATA.moves` to go from the
+game state of `DATA.child` back to that of `DATA.parent`.
+
+### Basic Operation <a name="up-to-date-operation"></a>
+
+The typical mode of operation is that the game engine's current state
+corresponds to the tip of the current Xyon blockchain.  In this case,
+whenever a new block comes in and `game-block-attach` is published,
+`DATA.parent` equals the block associated to the current game state.
+Similarly, for `game-block-detach` during a reorg, `DATA.child` is exactly
+the block hash for the current game state.
+
+For these cases, the game engine can simply process the incoming message
+to update its game state accordingly.  This allows it to keep up-to-date
+with the Xyon blockchain in real time.
+
+### Recovering from Out-of-Sync State
+
+It may, however, also happen that the current state of some engine is
+out-of-sync with the Xyon daemon.  This can be because the game engine was
+not running for some time even though the daemon was, so that it missed some
+block attach and detach operations.  This situation occurs also when the engine
+for a new game is installed and attached to the Xyon daemon for the first time
+and needs to do an initial sync.
+
+If the game engine determines it is out-of-sync (for instance, because it
+received a `game-block-attach` message with a `DATA.parent` block hash that
+does not match its game state), it can explicitly request the updates it needs
+to be resent through RPC:
+
+    $ game_send_updates GAMEID FROM-BLOCK [TO-BLOCK]
+
+`FROM-BLOCK` should be the block hash that is associated to its current game
+state (it can be the genesis block, known to correspond to some initial game
+state, for a full sync).  If given, `TO-BLOCK` is the block hash to which the
+game wants to update; it can be omitted, in which case it is assumed to be
+the current tip of the blockchain.
+
+If the Xyon daemon knows both block hashes and there is a sequence of block
+attaches and detaches that brings `FROM-BLOCK` to `TO-BLOCK`, it will
+immediately return success from the RPC and trigger sending those updates
+in the background (through the same `game-block-attach` and `game-block-detach`
+notifications that would be sent during
+[normal operation](#up-to-date-operation)).
+The RPC itself will return the block hash to which updates have been triggered,
+i. e., `TO-BLOCK` if it was given or the actual current best tip.
+
+If the requested block hashes are
+unknown or no valid sequence can be found, the RPC returns an error.  In that
+case, the game engine can try to recover by requesting updates from some
+older state that it has in its archive, or by syncing from scratch in the
+worst case.
+
+**NOTE:**  When a `game-block-attach` message with mismatching `DATA.parent`
+block hash is received, it does not necessarily mean that the game engine
+has to resync.  It could be an attach message for a block from the ancestry
+of the current game state, e. g., because `game_send_updates` was triggered.
+Similarly, a `game-block-detach` could be for a block that is not actually
+part of the best known chain.  Game engines can avoid unnecessary resyncs
+in these cases by keeping track of the full chain of blocks and spotting such
+requests, or they can always request `game_send_updates` without a `TO-BLOCK`.
+In that case, no updates will actually be triggered by the daemon if the
+passed in `FROM-BLOCk` already corresponds to the best chain tip.
+
+**NOTE:**  When games have requested updates that have not yet been fully sent,
+they should be careful when requesting updates again.  (This could happen,
+for instance, if a new block is received by the network and thus a
+`game-block-attach` is triggered for it; the game engine might then decide
+*again* that it is not up-to-date with it, and request updates a second time.)
+It is a good strategy to remember the target hash returned from
+`game_send_updates` and to either never request more updates until the game
+state has been updated to this block, or to request future updates with
+`FROM-BLOCK` set to this hash.
+
+#### Newly Created Games
+
+A special case is that of a *completely new* game, which did not
+exist before a certain block.  In this case, the game engine can hardcode
+some block hash known to be before the start of the game, so that it only
+requests updates from that block onwards on the initial sync.  This avoids
+processing potentially years of old blocks known to be irrelevant.
+
+The Xyon daemon can by itself also optimise this process at least somewhat:
+For all blocks that are requested but known to be **before the game's `g/` name
+was registered**, it can just send a message without any moves.  This makes
+it possible to create the messages just from the in-memory tree of block headers
+without the need to load and process full blocks from disk.
+
+(But this requires the daemon to keep a record of the registration of each
+game ID.  It could be enabled only if `-namehistory` is turned on, because then
+this information is readily available.)
+
+## Name Ownership
+
+Besides updating the game state itself, games engines that allow a user to
+actively play will likely also need to know which names the user owns
+(i. e., has the private keys in her wallet).  This can also change, as
+names can be sent to or from the user of the wallet.
+Thus, it is necessary to provide also an interface that allows such a game
+engine to inquire and stay up-to-date with the list of the user's names.
+
+The Xyon daemon's interface provides two complementing methods for this:
+First, the RPC method `name_list` inherited from Namecoin can be used to
+request the **full list of names owned by the user**.  This allows the game
+to get up-to-date immediately, for instance, at startup.
+(Also `name_pending` may be relevant to inquire about pending operations
+in the node's mempool.)
+
+Second, the daemon exposes the **`player-ownership`** ZeroMQ publisher that
+gets notified whenever *any `p/` name* changes its ownership status.
+(This means that it was previously owned by the wallet and now is no longer,
+or that it was not owned before and was now updated to an address in the wallet.
+It does not include address changes of *any* name, as this would be almost
+every name update in the blockchain.)
+Whenever a name update changes the ownership status of a name or a new name
+owned by the wallet is registered, one of the following notifications is sent:
+
+    player-ownership pending DATA
+    player-ownership confirmed DATA
+
+The "pending" notification is sent as soon as a relevant *unconfirmed*
+transaction is seen, e. g., added to the mempool.  The "confirmed" notification
+is sent when an ownership change has been confirmed.  The `DATA` value is
+a string encoding a JSON object of the following form:
+
+    {
+      "txid": TXID,
+      "name": NAME,
+      "state": STATE,
+    }
+
+The placeholders have the following meaning:
+
+* **`TXID`**:
+  The Xyon transaction ID of the name update.
+* **`NAME`**:
+  The account name that changed ownership, without the `p/` prefix.
+* **`STATE`**:
+  A string indicating the name's state.  This can be `"own"` to indicate
+  that the wallet holds the key for this name and `"foreign"` if the name is
+  *not* owned by the wallet.  In special situations during a reorg (see below),
+  it can also be `"unregistered"`.
+
+If a name update changing ownership occurs, *typically* first a
+`player-ownership pending` notification will be sent when the transaction
+is added to the mempool.  Later, when it is confirmed, a matching
+`player-ownership confirmed` is sent.  It may, however, happen that the
+transaction is only seen in the block confirming it, in which case only the
+"confirmed" notification occurs.
+
+When a block containing such a transaction is detached during a reorg,
+a `player-ownership confirmed` notification is sent for the previous
+ownership state; if the initial registration of the name is detached, the
+state will be `"unregistered"`.  If the now-unconfirmed name transaction
+is re-added to the mempool, a matching `player-ownership pending` notification
+(for the new state) is also sent.
+
+## Pending Moves
+
+Games may also want to be notified about moves as soon as possible, even
+if they are still unconfirmed.  This allows them to show, for instance,
+a "forecast" of what other players will likely do in the future.
+For this, the **`game-pending-move`** ZeroMQ publisher is exposed.  Whenever
+a name operation referencing a game is added to the mempool (including when
+it is re-added after a block detach), the following notification is sent
+*for each tracked game*:
+
+    game-pending-move GAMEID DATA
+
+`DATA` is a description of the move in the same form as in the `moves` array
+for [`game-block-attach` notifications](#attach-detach).
