@@ -1,7 +1,9 @@
 # Games on the Blockchain
 
 This document describes how games in Xyon are structured and how they interact
-with the core Xyon blockchain.
+with the core Xyon blockchain.  By following these rules, games ensure that
+they fit well into the Xyon ecosystem and that the
+[game-specific Xyon interface](interface.md) works well for them.
 
 ## Basic Model
 
