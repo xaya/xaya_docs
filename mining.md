@@ -114,7 +114,7 @@ This contains metadata about the PoW (the algorithm used and whether or not
 it was merge-mined) as well as the actual data proving the work by committing
 to the SHA256D hash of the actual block header.
 
-The first byte of the PoW data indicates the mining algorithm:
+The first byte of the PoW data indicates the **mining algorithm**:
 
 Value  | Algorithm
 ------ | ---------
@@ -125,7 +125,19 @@ In addition, when the block is merge-mined, the highest-value bit (`0x80`)
 is also set to indicate this.  This means that the only valid values
 are `0x81` (merge-mined SHA256D) and `0x02` (stand-alone Neoscrypt).
 
-The format of the remainder of the PoW data depends on whether or not
+After that, the **`nBits` field** encoding the difficulty target for the
+chosen algorithm follows.  *The `nBits` of the block header itself
+are unused, and must be set to zero.*  (Because the block header alone,
+without the PoW data, does not specify the mining algorithm, it would not
+make sense to specify the difficulty in it, either.)
+When validating a block header (with PoW data), the usual rules apply:
+
+* The `nBits` field in the block header must be zero.
+* The `nBits` of the PoW data must match the expected difficulty for the
+  selected algorithm, following the difficulty retargeting for that algorithm.
+* The PoW must match the `nBits` difficulty target specified in the PoW data.
+
+The format of the **remainder of the PoW data** depends on whether or not
 merge-mining is used.  If it is, then an **"auxpow" data structure** as
 per [Namecoin's
 merge-mining](https://en.bitcoin.it/wiki/Merged_mining_specification) follows.
