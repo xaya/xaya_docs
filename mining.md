@@ -163,7 +163,9 @@ and stand-alone mining.
 This particular format for attaching PoW to block headers has various benefits:
 
 * It does not put *any* constraints at all on the actual block header, which
-  prevents the issue with BIP 9 (as well as similar problems in the future).
+  prevents
+  [conflicts with BIP 9](https://forum.namecoin.org/viewtopic.php?f=5&t=2466)
+  as well as similar problems in the future.
 * It reuses the existing format for merged mining as far as possible, and,
   in particular, allows merge-mining Xyon together with existing chains
   as Namecoin does.
