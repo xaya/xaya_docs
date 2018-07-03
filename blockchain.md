@@ -54,7 +54,8 @@ Some of the basic chain parameters and properties of the genesis block
 in Xyon differ from those in Bitcoin and Namecoin.  In particular:
 
 * PoW mining is done based on [**triple-purpose mining**](mining.md).
-* The difficulty is updated for each block using the **Dark Gravity Wave (DGW)**
+* The difficulty is updated for each block using the [**Dark Gravity Wave
+  (DGW)**](https://github.com/xyonplatform/xyon/blob/a4ebc9b0daf72c79d3997901aadef0ca6bd01085/src/test/dualalgo_tests.cpp#L29)
   formula.
 * Blocks are scheduled to be produced every **30 seconds** instead of
   every 10 minutes.  That is, once per minute for each of the two
