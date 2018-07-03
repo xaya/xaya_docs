@@ -108,7 +108,7 @@ use the `nVersion` field of the main block header.
 
 ### PoW Data in the Block Header <a name="pow-data"></a>
 
-For PoW in Xyon, the hash of the block header proper never matters
+For PoW in Xyon, the hash of the actual block header never matters
 *and its `nNonce` field must be zero*.
 Instead, each block header is always followed by special **PoW data**.
 This contains metadata about the PoW (the algorithm used and whether or not
