@@ -64,9 +64,10 @@ value from the name update, not any other data.  It may, however, also depend
 on [*currency outputs*](#currency) created in the same transaction.**
 
 In particular, games must also not include any newly registered names into
-the game state until those names have referenced the game.  Players
-must make an explicit move with a new name that indicates they wish to "join"
-the game or "create" an avatar in the game.
+the game state until those names have been referenced by a move associated
+with the game's ID.
+Typically, players should make an explicit move with a new name that indicates
+they wish to join the game or create an avatar in the game.
 (Of course, game UIs may show a list of all the names the player owns
 so that the player can easily choose to join in this way through the UI.)
 
