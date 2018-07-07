@@ -1,16 +1,16 @@
 # Games on the Blockchain
 
-This document describes how games in Xyon are structured and how they interact
-with the core Xyon blockchain.  By following these rules, games ensure that
-they fit well into the Xyon ecosystem and that the
-[game-specific Xyon interface](interface.md) works well for them.
+This document describes how games in Xaya are structured and how they interact
+with the core Xaya blockchain.  By following these rules, games ensure that
+they fit well into the Xaya ecosystem and that the
+[game-specific Xaya interface](interface.md) works well for them.
 
 ## Basic Model
 
 Each game has a **game state**, which represents, for instance, the current
 state and position of each avatar, in-game assets that each player owns, etc.
 A particular state is associated
-with each block in the Xyon blockchain, and all nodes running a particular game
+with each block in the Xaya blockchain, and all nodes running a particular game
 have consensus about the current state.  This state is roughly speaking
 what the UTXO set is in Bitcoin, except that it may be more complex as needed
 for the particular game.
@@ -36,13 +36,13 @@ properly handle chain reorgs, there must be a way to *restore old game states*.
 This is discussed [below](#undoing).
 
 In general, it is the responsibility of the **game engine** to keep track
-of the current state and its updates.  The Xyon daemon, on the other hand,
+of the current state and its updates.  The Xaya daemon, on the other hand,
 provides the game engine with information about each attached or detached
 block and the [moves](#moves) performed in them.
 
 ## Moves <a name="moves"></a>
 
-Player accounts are represented in Xyon by [names](blockchain.md#names)
+Player accounts are represented in Xaya by [names](blockchain.md#names)
 with the `p/` prefix.
 For instance, `p/domob` is for the player account "domob".
 Each player performs moves by **updating** this name to a value that encodes
@@ -55,7 +55,7 @@ a JSON value in `.g[GAMEID]`.  The game decides on the type and format of the
 move data, as well as how it processes the move when updating
 the game state.
 
-**As a fundamental rule, game engines should only ever depend on Xyon
+**As a fundamental rule, game engines should only ever depend on Xaya
 transactions that are name updates (or registrations) referencing the
 particular game ID!  The game state must not depend on any other transactions,
 neither pure currency transactions nor name updates not referencing the game.
@@ -86,7 +86,7 @@ Here are some example values:
   and moves in two games at the same time:
 
         {
-          "chat": "Xyon rocks!",
+          "chat": "Xaya rocks!",
           "g":
             {
               "chess": "0-0-0",
@@ -107,7 +107,7 @@ Here are some example values:
 
 Since the [move format](#moves) references particular games, there must be
 **unique IDs** for each game.  These game IDs are strings, and game creators
-must reserve them by registering the name `g/GAMEID` on the Xyon blockchain.
+must reserve them by registering the name `g/GAMEID` on the Xaya blockchain.
 This ensures uniqueness.
 
 **NOTE:** This rule is not strictly enforceable by the blockchain, but it
@@ -127,8 +127,8 @@ transactions are settled in CHI.
 
 To facilitate this, game engines can process all **currency outputs**
 created by name transactions that reference their game ID.  In other words,
-a player can issue a move and *in the same Xyon transaction* also send CHI to,
-for instance, the Xyon address of the game developer or a trading partner.
+a player can issue a move and *in the same Xaya transaction* also send CHI to,
+for instance, the Xaya address of the game developer or a trading partner.
 The game engine will then (but only if done in the same transaction) know about
 this, and can implement rules that update the game state accordingly.
 For instance, a game rule could be like this:
@@ -148,7 +148,7 @@ are viable, and can be used depending on the particular circumstances.
 
 ## Processing Backwards in Time <a name="undoing"></a>
 
-While the typical behaviour of the Xyon blockchain is to attach blocks
+While the typical behaviour of the Xaya blockchain is to attach blocks
 on top of each other, it may happen that the blockchain is *reorganised*.
 This means that one or multiple blocks that were previously part of the best
 chain must be **detached**, and alternative blocks are attached to replace
@@ -193,7 +193,7 @@ An alternative is to implement separate logic that **reverts** the changes
 made to the game state by a particular block.  This can then be used to
 compute the old game state when detaching a block, before attaching a new one.
 
-Since the moves made in a particular block are archived already by the Xyon
+Since the moves made in a particular block are archived already by the Xaya
 daemon as part of the block, they are readily available when detaching the
 block.  However, it may very well be the case that the forward-processing
 function `f` is not reversible, because it "destroys" or "overwrites" some
@@ -207,7 +207,7 @@ reverted by the backwards-processing function
 
 > `b`: (new state, moves, undo data) -> old state.
 
-**It is the responsibility of the game engine and not the Xyon daemon to
+**It is the responsibility of the game engine and not the Xaya daemon to
 keep all the undo data relevant for the particular game!**
 
 This method is, in some sense, a custom implementation of incremental snapshots

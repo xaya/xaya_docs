@@ -1,14 +1,14 @@
-# Interface of the Xyon Core Daemon for Games
+# Interface of the Xaya Core Daemon for Games
 
 The main interface of the Bitcoin Core daemon is through the various
 provided [JSON RPC](http://www.jsonrpc.org/) methods as well as
 [ZeroMQ](http://zeromq.org/) for
 [notifications](https://github.com/bitcoin/bitcoin/blob/master/doc/zmq.md).
 
-Xyon inherits these interfaces.  However, Xyon focuses on providing
+Xaya inherits these interfaces.  However, Xaya focuses on providing
 the backbone for individual [game engines](games.md).  Thus it makes sense
 to also provide an **additional interface that is optimised for this
-purpose**, tailored specifically for the Xyon [game model](games.md).
+purpose**, tailored specifically for the Xaya [game model](games.md).
 
 ## Sending Moves
 
@@ -22,13 +22,13 @@ the basic RPC methods inherited and adapted from Namecoin should be used:
 ## Keeping the Game State Up-to-Date
 
 The most important and fundamental task of each game engine is to keep the
-current game state updated with the Xyon blockchain.  For this, it must
+current game state updated with the Xaya blockchain.  For this, it must
 process moves from attached and detached blocks as discussed in the
-Xyon [game model](games.md).
+Xaya [game model](games.md).
 
 ### Attaching and Detaching Publishers <a name="attach-detach"></a>
 
-The Xyon daemon provides [ZeroMQ publishers](http://zeromq.org/) for
+The Xaya daemon provides [ZeroMQ publishers](http://zeromq.org/) for
 **attached and detached blocks**.  They provide subscribers with all
 the required information to update game states.
 
@@ -75,7 +75,7 @@ The placeholders have the following meaning:
   The hash of the newly-attached block, i.e. the block that contains all the
   moves listed below.
 * **`TXID`:**
-  The Xyon transaction ID of the transaction that performed the given move.
+  The Xaya transaction ID of the transaction that performed the given move.
   This is mostly useful as a key and to correlate a single transaction
   through different endpoints of the API (if necessary).
 * **`UPDATED-NAME`:**
@@ -84,7 +84,7 @@ The placeholders have the following meaning:
   The actual [move data](games.md#moves), as it is given in `.g[GAMEID]`
   of the name update's value.
 * **`ADDRESS`n and `AMOUNT`n:**
-  Xyon addresses and amounts that were transacted in the move transaction,
+  Xaya addresses and amounts that were transacted in the move transaction,
   as described in the model for
   [currency transaction in games](games.md#currency).
 
@@ -110,7 +110,7 @@ game state of `DATA.child` back to that of `DATA.parent`.
 ### Basic Operation <a name="up-to-date-operation"></a>
 
 The typical mode of operation is that the game engine's current state
-corresponds to the tip of the current Xyon blockchain.  In this case,
+corresponds to the tip of the current Xaya blockchain.  In this case,
 whenever a new block comes in and `game-block-attach` is published,
 `DATA.parent` equals the block associated with the current game state.
 Similarly, for `game-block-detach` during a reorg, `DATA.child` is exactly
@@ -118,15 +118,15 @@ the block hash for the current game state.
 
 For these cases, the game engine can simply process the incoming message
 to update its game state accordingly.  This allows it to keep up-to-date
-with the Xyon blockchain in real time.
+with the Xaya blockchain in real time.
 
 ### Recovering from Out-of-Sync State
 
 However, the current state of an engine may go
-out-of-sync with the Xyon daemon.  This could be because the game engine was
+out-of-sync with the Xaya daemon.  This could be because the game engine was
 not running for some time even though the daemon was, and it missed some
 block attach and detach operations.  This situation also occurs when the engine
-for a new game is installed and attached to the Xyon daemon for the first time
+for a new game is installed and attached to the Xaya daemon for the first time
 and needs to do an initial sync.
 
 If the game engine determines it is out-of-sync (for instance, because it
@@ -142,7 +142,7 @@ state, for a full sync).  If given, `TO-BLOCK` is the block hash that the
 game wants to update to; it can be omitted, in which case it is assumed to be
 the current tip of the blockchain.
 
-If the Xyon daemon knows both block hashes and there is a sequence of block
+If the Xaya daemon knows both block hashes and there is a sequence of block
 attachments and detachments that bring `FROM-BLOCK` to `TO-BLOCK`, the RPC will
 immediately return success and trigger sending those updates
 in the background (through the same `game-block-attach` and `game-block-detach`
@@ -186,7 +186,7 @@ a block hash known to be before the start of the game, so that it only
 requests updates from that block onwards on the initial sync.  This avoids
 processing potentially years of old blocks known to be irrelevant.
 
-The Xyon daemon can partially optimise this process itself:
+The Xaya daemon can partially optimise this process itself:
 For all blocks that are requested and known to be **before the game's `g/` name
 was registered**, it can just send a message without any moves.  This makes
 it possible to create the messages just from the in-memory tree of block headers
@@ -205,7 +205,7 @@ names can be sent to or from the user's wallet.
 Thus, it is necessary to provide also an interface that allows game
 engines to inquire and stay up-to-date with the list of the user's names.
 
-The Xyon daemon's interface provides two complementary methods for this.
+The Xaya daemon's interface provides two complementary methods for this.
 
 First, the RPC method `name_list` inherited from Namecoin can be used to
 request the **full list of names owned by the user**.  This allows the game
@@ -240,7 +240,7 @@ a string encoding a JSON object of the following form:
 The placeholders have the following meaning:
 
 * **`TXID`**:
-  The Xyon transaction ID of the name update.
+  The Xaya transaction ID of the name update.
 * **`NAME`**:
   The account name that changed ownership, without the `p/` prefix.
 * **`STATE`**:

@@ -1,11 +1,11 @@
 # Triple-Purpose Mining
 
-Xyon is commited to proof-of-work (PoW) for securing its blockchain.  As there
-are [various drawbacks](#existing-schemes) to commonly-used PoW schemes, Xyon
+Xaya is commited to proof-of-work (PoW) for securing its blockchain.  As there
+are [various drawbacks](#existing-schemes) to commonly-used PoW schemes, Xaya
 implements a new design that unifies the best of all worlds.
 
 The following provides a [high-level design](#overview) overview and then
-describes the [technical details](#technical) of the Xyon **triple-purpose
+describes the [technical details](#technical) of the Xaya **triple-purpose
 mining** implementation.
 
 ## Common PoW Schemes and Their Drawbacks <a name="existing-schemes"></a>
@@ -62,7 +62,7 @@ To combine the best of both worlds (merged and stand-alone mining), we propose
 **triple-purpose mining** as a new scheme that forms a good compromise between
 the two extremes:
 
-**Xyon blocks can be either merge-mined with SHA-256d (Bitcoin), or they
+**Xaya blocks can be either merge-mined with SHA-256d (Bitcoin), or they
 can be mined stand-alone with Neoscrypt.**
 There are no particular rules enforcing a certain sequence of blocks for each
 algorithm (unlike some existing multi-algorithm projects), but the difficulty
@@ -103,12 +103,12 @@ is not ideal.  Since it uses the `nVersion` field of the block header to
 signal merge mining (and, in the case of Huntercoin, which algorithm
 is used), it conflicts with
 [BIP 9](https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki).
-Thus, merge mining in Xyon is implemented differently and does not
+Thus, merge mining in Xaya is implemented differently and does not
 use the `nVersion` field of the main block header.
 
 ### PoW Data in the Block Header <a name="pow-data"></a>
 
-For PoW in Xyon, the hash of the actual block header never matters
+For PoW in Xaya, the hash of the actual block header never matters
 *and its `nNonce` field must be zero*.
 Instead, each block header is always followed by special **PoW data**.
 This contains metadata about the PoW (the algorithm used and whether or not
@@ -146,7 +146,7 @@ If the block is stand-alone mined, then **80 bytes** follow, such that:
 1. Their hash according to the selected algorithm (Neoscrypt) satisfies the
    difficulty target.
 2. Bytes 37 to 68, where the Merkle root hash would be in a Bitcoin block
-   header, contain exactly the hash of the Xyon block header.
+   header, contain exactly the hash of the Xaya block header.
 
 Apart from the block hash being in the specified position, there are no other
 requirements for these bytes.  They can set other fields similar to how
@@ -167,7 +167,7 @@ This particular format for attaching PoW to block headers has various benefits:
   [conflicts with BIP 9](https://forum.namecoin.org/viewtopic.php?f=5&t=2466)
   as well as similar problems in the future.
 * It reuses the existing format for merged mining as far as possible, and,
-  in particular, allows merge-mining Xyon together with existing chains
+  in particular, allows merge-mining Xaya together with existing chains
   as Namecoin does.
 * The data that is hashed for stand-alone mining has the same format
   as a Bitcoin block header, so that existing software and mining infrastructure
@@ -192,14 +192,14 @@ merge-mined coins like Namecoin.)
 
 #### `createauxblock` and `submitauxblock`
 
-For merge-mining Xyon, the RPC methods `createauxblock` and `submitauxblock`
+For merge-mining Xaya, the RPC methods `createauxblock` and `submitauxblock`
 are provided similar to Namecoin.  They handle the construction of the block
 with the correct format, as long as the miner can construct the auxpow
 itself (as is required for Namecoin).
 
 #### `getwork`
 
-For out-of-the-box stand-alone mining, Xyon provides the
+For out-of-the-box stand-alone mining, Xaya provides the
 [`getwork`](https://en.bitcoin.it/wiki/Getwork) RPC method that was previously
 used in Bitcoin.  It constructs the PoW data as described above internally and
 returns the "fake block header" data that needs to be hashed, such that

@@ -1,8 +1,8 @@
-# Xyon Currencies
+# Xaya Currencies
 
-**Currencies** (custom tokens issued on the Xyon blockchain)
+**Currencies** (custom tokens issued on the Xaya blockchain)
 are a special case of more general games, and can thus be
-implemented and managed through a Xyon [game state](games.md).
+implemented and managed through a Xaya [game state](games.md).
 
 This document defines a standard for how such "games" may be created
 with certain parameters, what the game rules are for them and what
