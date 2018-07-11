@@ -141,6 +141,50 @@ sends five units to `p/alice` and three to `p/charly`:
         }
     }
 
+## Trading and Atomic Transactions
+
+For a currency as defined here, it is very useful to have the opportunity
+to **trade it against CHI** or another currency, and to do
+**atomic transactions** with trading partners.
+
+Note that it is not possible to do atomic transactions with currencies as
+defined here in a straight-forward way (i.e. by sending them between trading
+partners in a single transaction).  There are two reasons for this:
+
+1. A transaction as specified here is done through a name update of the
+   *sending name*.  Since each Xaya transaction can contain at most one
+   name operation, this means that it is only possible for someone
+   to send multiple currencies in a single transaction, but not for *two
+   different* people to transfer to each other as required for atomic trading.
+2. As described [above](#transactions), even if a name update for sending
+   tokens makes it into the blockchain it is *not guaranteed that the tokens
+   are actually sent*.  The transaction might be invalid and ignored
+   if the *sender's balance is not sufficient*.  For an atomic transaction,
+   it would have to be ensured that either both sends are executed or none
+   is; and for that to be possible, the update to one currency's ledger would
+   have to depend on the state of the other, linking the two game states.
+   This is not desired, because we want to give users the ability to track
+   only currencies they care about.
+
+### Temporary Names ("Vessels")
+
+Instead, currencies can be traded for CHI atomically by using
+**temporary *vessel* names**:  If Alice wants to sell 100 of some token
+for 100 CHI to Bob, she creates a temporary name in her wallet and sends the
+tokens to it.  Then, Alice and Bob do an *atomic name trade*, where Bob buys
+the vessel name from Alice for 100 CHI.  Finally, Bob can transfer the tokens
+out of the vessel (or keep them there).
+
+Note that if Alice sends the tokens out of the vessel before the name trade
+is confirmed, this *double spends the vessel name* and thus also *invalidates
+the whole trading transaction*.  In other words, Alice also won't get the CHI,
+so that these kinds of transactions are safe.
+
+Vessel names in a user's wallet can be reused, so that there is not an
+ever-growing number of unused names cluttering the blockchain.  Since each
+name registration costs the locked amount of 0.01 CHI, there is incentive for
+users to reuse vessels where possible.
+
 ## Implementation Notes
 
 Wallets and other software handling currencies are effectively
