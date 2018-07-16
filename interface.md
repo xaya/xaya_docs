@@ -37,16 +37,27 @@ These are all the games that the user is running.  Then, for each block
 that is attached to the blockchain *and each tracked game*, the daemon sends
 out a **`game-block-attach`** message that contains all the information
 necessary for the corresponding game engine to step forward in time.
-In particular, the message looks like this:
 
-    game-block-attach json GAMEID DATA
+For the actual message, we reuse the multi-part format introduced by
+[Bitcoin Core's ZeroMQ
+interface](https://github.com/bitcoin/bitcoin/blob/master/doc/zmq.md).
+In particular, the message is a
+[ZeroMQ multipart message](http://api.zeromq.org/3-2:zmq-msg-send)
+of the following format:
 
-This allows each game engine to subscribe to `game-block-attach json GAMEID`
+    game-block-attach json GAMEID|DATA|SEQ
+
+Here, `|` denotes the boundary between distinct message parts.  The first
+part is the **command string**.  It allows each game engine to subscribe to
+`game-block-attach json GAMEID`
 in order to receive exactly the updates relevant to it.
-The `json` part denotes the format that is used; JSON is the only available
+`json` denotes the format that is used; JSON is the only available format
 for now, but more might be defined in the future.
+`SEQ` is a **sequence number** encoded as *little-endian 32-bit integer*, which
+counts the number of messages sent already for *a particular command string*
+(including the game ID).  This allows receivers to detect missed messages.
 
-The `DATA` part is a JSON object with the relevant information:
+The `DATA` part, finally, is a JSON object with the relevant information:
 
     {
       "parent": PREVIOUS-BLOCK-HASH,
@@ -97,7 +108,7 @@ all **name updates and registrations that mention the game ID in their value**.
 Similarly, the daemon also provides a **`game-block-detach`** message for blocks
 that are detached during a reorg:
 
-    game-block-detach json GAMEID DATA
+    game-block-detach json GAMEID|DATA|SEQ
 
 In this message, `DATA` is exactly the same data that was sent previously
 when the same block was attached.  This means that `DATA.child` is the hash
@@ -225,8 +236,8 @@ every name update in the blockchain.)
 Whenever a name update changes the ownership status of a name or a new name
 owned by the wallet is registered, one of the following notifications is sent:
 
-    player-ownership json pending DATA
-    player-ownership json confirmed DATA
+    player-ownership json pending|DATA|SEQ
+    player-ownership json confirmed|DATA|SEQ
 
 The "pending" notification is sent as soon as a relevant *unconfirmed*
 transaction is seen, e.g. added to the mempool.  The "confirmed" notification
@@ -276,7 +287,7 @@ a name operation referencing a game is added to the mempool (including when
 it is re-added after a block detach), the following notification is sent
 *for each tracked game*:
 
-    game-pending-move json GAMEID DATA
+    game-pending-move json GAMEID|DATA|SEQ
 
 `DATA` is a description of the move in the same form as in the `moves` array
 for [`game-block-attach` notifications](#attach-detach).
