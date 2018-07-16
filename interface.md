@@ -39,10 +39,12 @@ out a **`game-block-attach`** message that contains all the information
 necessary for the corresponding game engine to step forward in time.
 In particular, the message looks like this:
 
-    game-block-attach GAMEID DATA
+    game-block-attach json GAMEID DATA
 
-This allows each game engine to subscribe to `game-block-attach GAMEID` in order
-to receive exactly the updates relevant to it.
+This allows each game engine to subscribe to `game-block-attach json GAMEID`
+in order to receive exactly the updates relevant to it.
+The `json` part denotes the format that is used; JSON is the only available
+for now, but more might be defined in the future.
 
 The `DATA` part is a JSON object with the relevant information:
 
@@ -95,7 +97,7 @@ all **name updates and registrations that mention the game ID in their value**.
 Similarly, the daemon also provides a **`game-block-detach`** message for blocks
 that are detached during a reorg:
 
-    game-block-detach GAMEID DATA
+    game-block-detach json GAMEID DATA
 
 In this message, `DATA` is exactly the same data that was sent previously
 when the same block was attached.  This means that `DATA.child` is the hash
@@ -223,8 +225,8 @@ every name update in the blockchain.)
 Whenever a name update changes the ownership status of a name or a new name
 owned by the wallet is registered, one of the following notifications is sent:
 
-    player-ownership pending DATA
-    player-ownership confirmed DATA
+    player-ownership json pending DATA
+    player-ownership json confirmed DATA
 
 The "pending" notification is sent as soon as a relevant *unconfirmed*
 transaction is seen, e.g. added to the mempool.  The "confirmed" notification
@@ -274,7 +276,7 @@ a name operation referencing a game is added to the mempool (including when
 it is re-added after a block detach), the following notification is sent
 *for each tracked game*:
 
-    game-pending-move GAMEID DATA
+    game-pending-move json GAMEID DATA
 
 `DATA` is a description of the move in the same form as in the `moves` array
 for [`game-block-attach` notifications](#attach-detach).
