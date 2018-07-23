@@ -147,7 +147,7 @@ received a `game-block-attach` message with a `DATA.parent` block hash that
 does not match its game state), it can explicitly request the updates it needs
 to be resent through RPC:
 
-    $ game_send_updates GAMEID FROM-BLOCK [TO-BLOCK]
+    $ game_sendupdates GAMEID FROM-BLOCK [TO-BLOCK]
 
 `FROM-BLOCK` should be the block hash that is associated with its current game
 state (it can be the genesis block, known to correspond to an initial game
@@ -173,11 +173,11 @@ worst case.
 **NOTE:**  When a `game-block-attach` message with a mismatching `DATA.parent`
 block hash is received, it does not necessarily mean that the game engine
 must resync.  It could be an attach message for a block from the ancestry
-of the current game state, e.g. because `game_send_updates` was triggered.
+of the current game state, e.g. because `game_sendupdates` was triggered.
 Similarly, a `game-block-detach` could be for a block that is not actually
 part of the best known chain.  Game engines can avoid unnecessary resyncs
 in these cases by keeping track of the full chain of blocks and spotting such
-requests, or they can always request `game_send_updates` without a `TO-BLOCK`.
+requests, or they can always request `game_sendupdates` without a `TO-BLOCK`.
 In that case, no updates will actually be triggered by the daemon if the
 passed in `FROM-BLOCK` already corresponds to the best chain tip.
 
@@ -187,7 +187,7 @@ for instance, if a new block is received by the network and triggers a
 `game-block-attach` for it; the game engine might then decide
 *again* that it is not up-to-date with it, and request updates a second time.)
 It is a good strategy to remember the target hash returned from
-`game_send_updates` and to either not request more updates until the game
+`game_sendupdates` and to either not request more updates until the game
 state has been updated to that block, or to request future updates with
 `FROM-BLOCK` set to this hash.
 
