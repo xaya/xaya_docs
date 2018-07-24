@@ -161,8 +161,14 @@ immediately return success and trigger sending those updates
 in the background (through the same `game-block-attach` and `game-block-detach`
 notifications that would be sent during
 [normal operation](#up-to-date-operation)).
-The RPC itself will return the block hash that updates have been triggered for,
-i.e. `TO-BLOCK` if it was given or the actual current best tip.
+The RPC itself will return a JSON object that contains various information
+about the updates that have been triggered.  In particular, the target
+block hash is returned, i.e. `TO-BLOCK` if it was given or the actual
+current best tip if not.  Also the block hash of the last common ancestor
+of the two blocks is returned; this can be useful for game engines to decide
+whether to roll the detached blocks backwards or instead look up a cached
+game state for the common ancestor and only process all attached blocks
+forward from there on.
 
 If the requested block hashes are
 unknown or no valid sequence can be found, the RPC returns an error.  In that
