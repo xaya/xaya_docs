@@ -133,7 +133,12 @@ For these cases, the game engine can simply process the incoming message
 to update its game state accordingly.  This allows it to keep up-to-date
 with the Xaya blockchain in real time.
 
-### Recovering from Out-of-Sync State
+**NOTE:**  Notifications sent because of genuine changes in the best chain
+will not contain a `reqtoken` field (unlike notifications that were
+[explicitly requested](#requested-updates)).  **Notifications with a `reqtoken`
+field should normally be ignored unless they were explicitly requested!**
+
+### Recovering from Out-of-Sync State <a name="requested-updates"></a>
 
 However, the current state of an engine may go
 out-of-sync with the Xaya daemon.  This could be because the game engine was
@@ -162,13 +167,21 @@ in the background (through the same `game-block-attach` and `game-block-detach`
 notifications that would be sent during
 [normal operation](#up-to-date-operation)).
 The RPC itself will return a JSON object that contains various information
-about the updates that have been triggered.  In particular, the target
-block hash is returned, i.e. `TO-BLOCK` if it was given or the actual
-current best tip if not.  Also the block hash of the last common ancestor
-of the two blocks is returned; this can be useful for game engines to decide
-whether to roll the detached blocks backwards or instead look up a cached
-game state for the common ancestor and only process all attached blocks
-forward from there on.
+about the updates that have been triggered.  In particular, these fields
+will be returned:
+
+* **`toblock`**:  The hash of the target block; this is equal to `TO-BLOCK` if
+  it was set, or the current best tip if not.
+* **`ancestor`**:  The block hash of the last common ancestor of `FROM-BLOCK`
+  and `TO-BLOCK`.  This can be useful for game engines to decide whether to
+  roll the detached blocks backwards or instead look up a cached game
+  state for the common ancestor and only process all attached blocks
+  forward from there on.
+* **`reqtoken`**:  A unique string for this request, which will be included in
+  the `reqtoken` field of all notifications triggered as a result of this call.
+  This can be used to distinguish notifications that are sent due to changes
+  in the best chain (which won't have a `reqtoken` field) from notifications
+  sent due to this `game_sendupdates` call.
 
 If the requested block hashes are
 unknown or no valid sequence can be found, the RPC returns an error.  In that
@@ -176,26 +189,10 @@ case, the game engine can try to recover by requesting updates from an
 older state that it has in its archive, or by syncing from scratch in the
 worst case.
 
-**NOTE:**  When a `game-block-attach` message with a mismatching `DATA.parent`
-block hash is received, it does not necessarily mean that the game engine
-must resync.  It could be an attach message for a block from the ancestry
-of the current game state, e.g. because `game_sendupdates` was triggered.
-Similarly, a `game-block-detach` could be for a block that is not actually
-part of the best known chain.  Game engines can avoid unnecessary resyncs
-in these cases by keeping track of the full chain of blocks and spotting such
-requests, or they can always request `game_sendupdates` without a `TO-BLOCK`.
-In that case, no updates will actually be triggered by the daemon if the
-passed in `FROM-BLOCK` already corresponds to the best chain tip.
-
-**NOTE:**  When games have requested updates that have not yet been fully sent,
-they should be careful when requesting updates again.  (This could happen,
-for instance, if a new block is received by the network and triggers a
-`game-block-attach` for it; the game engine might then decide
-*again* that it is not up-to-date with it, and request updates a second time.)
-It is a good strategy to remember the target hash returned from
-`game_sendupdates` and to either not request more updates until the game
-state has been updated to that block, or to request future updates with
-`FROM-BLOCK` set to this hash.
+**NOTE:** After sending a `game_sendupdates` request, a game engine should only
+process notifications with the corresponding `reqtoken` until it is up-to-date
+with the returned `toblock`.  From then on, it can resume
+[normal operation](#up-to-date-operation).
 
 #### Newly Created Games
 
