@@ -62,6 +62,7 @@ The `DATA` part, finally, is a JSON object with the relevant information:
     {
       "parent": PREVIOUS-BLOCK-HASH,
       "child": ATTACHED-BLOCK-HASH,
+      "rngseed": RNG-SEED,
       "moves":
         [
           {
@@ -87,6 +88,9 @@ The placeholders have the following meaning:
 * **`ATTACHED-BLOCK-HASH`:**
   The hash of the newly-attached block, i.e. the block that contains all the
   moves listed below.
+* **`RNG-SEED`:**
+  The `rngseed` of the child block (which might be used by the game engine
+  in the game-state update).
 * **`TXID`:**
   The Xaya transaction ID of the transaction that performed the given move.
   This is mostly useful as a key and to correlate a single transaction
