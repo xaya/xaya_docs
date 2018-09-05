@@ -60,9 +60,14 @@ counts the number of messages sent already for *a particular command string*
 The `DATA` part, finally, is a JSON object with the relevant information:
 
     {
-      "parent": PREVIOUS-BLOCK-HASH,
-      "child": ATTACHED-BLOCK-HASH,
-      "rngseed": RNG-SEED,
+      "block":
+        {
+          "hash": ATTACHED-BLOCK-HASH,
+          "parent": PREVIOUS-BLOCK-HASH,
+          "height": BLOCK-HEIGHT,
+          "timestamp": BLOCK-TIME,
+          "rngseed": RNG-SEED,
+        },
       "moves":
         [
           {
@@ -82,15 +87,15 @@ The `DATA` part, finally, is a JSON object with the relevant information:
 
 The placeholders have the following meaning:
 
-* **`PREVIOUS-BLOCK-HASH`:**
-  The hash of the previously-current block, i.e. the block on top of which
-  the new one is attached.
 * **`ATTACHED-BLOCK-HASH`:**
   The hash of the newly-attached block, i.e. the block that contains all the
   moves listed below.
-* **`RNG-SEED`:**
-  The `rngseed` of the child block (which might be used by the game engine
-  in the game-state update).
+* **`PREVIOUS-BLOCK-HASH`:**
+  The hash of the previously-current block, i.e. the block on top of which
+  the new one is attached.
+* **`RNG-SEED`, `BLOCK-HEIGHT` and `BLOCK-TIME`:**
+  Additional data about the attached block, which might be used by the game
+  engine in the update logic.
 * **`TXID`:**
   The Xaya transaction ID of the transaction that performed the given move.
   This is mostly useful as a key and to correlate a single transaction
@@ -115,14 +120,14 @@ that are detached during a reorg:
     game-block-detach json GAMEID|DATA|SEQ
 
 In this message, `DATA` is exactly the same data that was sent previously
-when the same block was attached.  This means that `DATA.child` is the hash
+when the same block was attached.  This means that `DATA.hash` is the hash
 of the block being detached and `DATA.parent` is the block that will be current
 after the detachment.
 
 The game engine must [undo](games.md#undoing) the
 block by either restoring the game state corresponding to `DATA.parent`
 from its archive, or backwards-processing `DATA.moves` to go from the
-game state of `DATA.child` back to that of `DATA.parent`.
+game state of `DATA.hash` back to that of `DATA.parent`.
 
 ### Basic Operation <a name="up-to-date-operation"></a>
 
@@ -130,7 +135,7 @@ The typical mode of operation is that the game engine's current state
 corresponds to the tip of the current Xaya blockchain.  In this case,
 whenever a new block comes in and `game-block-attach` is published,
 `DATA.parent` equals the block associated with the current game state.
-Similarly, for `game-block-detach` during a reorg, `DATA.child` is exactly
+Similarly, for `game-block-detach` during a reorg, `DATA.hash` is exactly
 the block hash for the current game state.
 
 For these cases, the game engine can simply process the incoming message
