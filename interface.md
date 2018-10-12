@@ -179,8 +179,9 @@ The RPC itself will return a JSON object that contains various information
 about the updates that have been triggered.  In particular, these fields
 will be returned:
 
-* **`toblock`**:  The hash of the target block; this is equal to `TO-BLOCK` if
-  it was set, or the current best tip if not.
+* **`toblock`**:  The hash of the target block to which notifications have
+  been triggered.  This will be some block hash "between" `FROM-BLOCK` and
+  `TO-BLOCK` (if it was set) or the current best tip.
 * **`ancestor`**:  The block hash of the last common ancestor of `FROM-BLOCK`
   and `TO-BLOCK`.  This can be useful for game engines to decide whether to
   roll the detached blocks backwards or instead look up a cached game
@@ -197,6 +198,14 @@ unknown or no valid sequence can be found, the RPC returns an error.  In that
 case, the game engine can try to recover by requesting updates from an
 older state that it has in its archive, or by syncing from scratch in the
 worst case.
+
+For cases where the sequence of updates for the full request is very long
+(e.g. when a game is synced from scratch), Xaya Core may decide to send only
+a part of the updates.  In that case, the value of `toblock` returned from
+the RPC indicates to which target block updates have been triggered.  Once
+those have been received, the game daemon should send another `game_sendupdates`
+request for the remaining blocks and continue to do so until it has arrived
+at its desired target block.
 
 **NOTE:** After sending a `game_sendupdates` request, a game engine should only
 process notifications with the corresponding `reqtoken` until it is up-to-date
