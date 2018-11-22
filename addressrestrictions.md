@@ -87,13 +87,13 @@ the chain state are performed:
    * This does not strip any name prefixes, which also means that sending names
      to a restricted address is fine since the output `scriptPubKey` will be
      different (including a name prefix).
-2. If there is a matching restriction, all of the following checks must
+1. If there is a matching restriction, all of the following checks must
    pass (for the limits that are actually part of the restriction)
    or otherwise the transaction is invalid:
    * The restriction's `N` value must be greater than zero
    * The amount sent in the output must not be greater than `A`
    * The amount sent in the output must be at least `s`
-3. After verifying each output, the restriction is updated in the tentative
+1. After verifying each output, the restriction is updated in the tentative
    chain state as follows:
    * `N` is decreased by one
    * `A` is decreased by the output's amount
@@ -126,12 +126,13 @@ Any name operation (including registrations) that contains a
 only if:
 
 1. It is a name update and not a name registration.
-2. Its format matches the description above:
+1. Its format matches the description above:
    * It contains a `ttlBlocks` field.
    * It contains one or more of the `maxTx`, `maxAmount` and `minAmount` fields.
    * It contains no other fields.
    * All fields have values that are valid according to the descriptions above.
-3. There is no currently active restriction on the associated `scriptPubKey`.
+1. If the restriction specifies `A` and `s`, then `s <= A` must be the case.
+1. There is no currently active restriction on the associated `scriptPubKey`.
    * This includes restrictions created by previous transactions in the
      same block.  While each name can only be updated once per block, it would
      otherwise be possible to place a restriction on the same script with
@@ -142,3 +143,44 @@ address restriction is created in the chain state *after processing the
 containing block* and with `E = B + ttlBlocks`.
 
 ## Usage Examples
+
+Let us now discuss some typical examples of situations in which
+address restrictions could be used.
+
+### Selling a Single, Unique Item
+
+When Alice wants to list a single, unique item for sale in a game's
+market place, she can use an address restriction to ensure that only
+one payment can be made to her.  To do so, she would create a restriction
+with `N = 1` and `s = P`, where `P` is the listed price of the item.
+
+Setting `N` ensures that exactly one transaction can be sent to her.
+But without setting also `s`, it would be possible for someone to send
+a very small amount to Alice's address and thus "block" the address for
+future payments, effectively cancelling her market offer.
+
+### Selling Multiple Items
+
+If Bob wants to sell multiple (up to `C`) items of the same type for a
+price of `P` each, he can set `A = C * P` and `s = P`.  This makes sure that
+one or multiple sellers can buy the items either at once or in smaller
+chunks, up to at most all `C`.  As in the previous example, the minimum
+size restriction `s` ensures that very small transfers cannot be used
+to mess with the system.
+
+In theory, however, it is still possible for someone to send a little more
+than `P` to Bob.  This would then buy one of the items and leave Bob with
+a little extra change.  It would also mean that in the end, Bob may have his
+address fully blocked with some of the items still available for sale.
+But it is ensured that each transaction buys at least one item, so that
+any "attacks" on the offer cost a non-negligible amount of money.
+
+### Selling a Divisible Good
+
+The third potential type of order on an in-game market place is selling
+of *divisible goods* like in-game currency.  Let's say that, similar to the
+previous example, a total of `C` is available for sale at a unit price
+of `P`.  For such an order, Chalie would again set `A = C * P` to ensure
+that at most the available quantity is sold.  He should also set `s` to
+some amount, corresponding to the minimum amount sold in one chunk.
+This time, however, that amount is up for him to choose.
