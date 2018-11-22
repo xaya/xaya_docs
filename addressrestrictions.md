@@ -60,3 +60,85 @@ here is a brief overview of how those restrictions will work:
 * Name updates with JSON for an invalid restriction or transfers of CHI
   that violate an active restriction are invalid transactions and thus not
   allowed to be confirmed in blocks or put into the mempool of nodes.
+
+## Detailed Restriction Rules
+
+Each address restriction in the chain state consists of the following data:
+
+* A **script** that determines the restricted "address" (but also non-address
+  scripts can be used)
+* The **block height** `E` at which the restriction ends
+* The actual data about the restriction.  This can be one or more of the
+  following individual limits, which are *all* imposed together
+  (as a logical *AND*):
+  * Maximum number `N` of transactions to the address
+  * Maximum amount `A` of CHI to be received
+  * Minimum amount `s` of CHI sent in any single transaction
+
+Restrictions are enforced from the *block after when they are confirmed* up
+to and including the block at height `E`.
+
+For a new block that is validated and attached, all transactions are
+processed in order.  For each one, the following checks and updates to
+the chain state are performed:
+
+1. For each output of the transaction, look up in the chain state if there
+   is a restriction matching the *exact* `scriptPubKey` it sends to.
+   * This does not strip any name prefixes, which also means that sending names
+     to a restricted address is fine since the output `scriptPubKey` will be
+     different (including a name prefix).
+2. If there is a matching restriction, all of the following checks must
+   pass (for the limits that are actually part of the restriction)
+   or otherwise the transaction is invalid:
+   * The restriction's `N` value must be greater than zero
+   * The amount sent in the output must not be greater than `A`
+   * The amount sent in the output must be at least `s`
+3. After verifying each output, the restriction is updated in the tentative
+   chain state as follows:
+   * `N` is decreased by one
+   * `A` is decreased by the output's amount
+
+## Creating Restrictions
+
+Address restrictions are created if a *name update* operation
+(registrations are not able to create restrictions)
+in the current block contains the field `addressRestriction` in its JSON
+value (at the top-level object).  This field must be an object with at
+least one of the following fields:
+
+* **`maxTx`**: A strictly positive integer specifying `N`
+* **`maxAmount`**: A strictly positive integer specifying `A` as a number
+  of CHI satoshis
+* **`minAmount`**: A strictly positive integer specifying `s` as a number
+  of CHI satoshis
+
+In addition, the field **`ttlBlocks`** must be set to a strictly positive
+integer that is *at most 1,000*.
+**(TODO: Specify the actual maximum TTL we want to allow!)**
+
+The restricted `scriptPubKey` corresponding to such a transaction is the
+script associated to the **name input** of the transaction, **with the name
+prefix removed**.  In other words, it is the address that held the name
+before the update.
+
+Any name operation (including registrations) that contains a
+`addressRestriction` field in its top-level JSON object is valid
+only if:
+
+1. It is a name update and not a name registration.
+2. Its format matches the description above:
+   * It contains a `ttlBlocks` field.
+   * It contains one or more of the `maxTx`, `maxAmount` and `minAmount` fields.
+   * It contains no other fields.
+   * All fields have values that are valid according to the descriptions above.
+3. There is no currently active restriction on the associated `scriptPubKey`.
+   * This includes restrictions created by previous transactions in the
+     same block.  While each name can only be updated once per block, it would
+     otherwise be possible to place a restriction on the same script with
+     updates to two different names (held at the same address).
+
+If such a valid transaction is confirmed at block height `B`, then an associated
+address restriction is created in the chain state *after processing the
+containing block* and with `E = B + ttlBlocks`.
+
+## Usage Examples
