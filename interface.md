@@ -68,6 +68,7 @@ The `DATA` part, finally, is a JSON object with the relevant information:
           "timestamp": BLOCK-TIME,
           "rngseed": RNG-SEED,
         },
+      "cmd": ADMIN-COMMAND,
       "moves":
         [
           {
@@ -96,6 +97,10 @@ The placeholders have the following meaning:
 * **`RNG-SEED`, `BLOCK-HEIGHT` and `BLOCK-TIME`:**
   Additional data about the attached block, which might be used by the game
   engine in the update logic.
+* **`ADMIN-COMMAND`:**
+  If the block contains an update the name game's `g/` name, then this
+  field is set to the game-specific [*admin command*](games.md#games)
+  specified with that update.
 * **`TXID`:**
   The Xaya transaction ID of the transaction that performed the given move.
   This is mostly useful as a key and to correlate a single transaction

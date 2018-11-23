@@ -57,7 +57,9 @@ the game state.
 
 **As a fundamental rule, game engines should only ever depend on Xaya
 transactions that are name updates (or registrations) referencing the
-particular game ID!  The game state must not depend on any other transactions,
+particular game ID!  This can be `p/` names that store a move in `g[GAMEID]`,
+and it can be updates to the [`g/` name](#games) itself.
+The game state must not depend on any other transactions,
 neither pure currency transactions nor name updates not referencing the game.
 Furthermore, the game engine must only take into account the actual move
 value from the name update, not any other data.  It may, however, also depend
@@ -114,9 +116,22 @@ This ensures uniqueness.
 is in the game creator's own interest to follow this guideline.
 
 Ownership of the name corresponding to a game can be used to prove to every
-node that someone is the "owner" of a game.  This may be useful in the future
-to send update notifications or other trusted communication to all users
-of a particular game.
+node that someone is the "owner" of a game.  This can be used to send update
+notifications or other trusted communication to all users of a particular game.
+In particular, `g/` names of a game can send *admin commands* to all
+instances of the game.  For that, the name should be updated to a value that
+contains a custom JSON value (encoding the command in a game-specific form)
+in the `cmd` field of the top-level JSON object.  For instance:
+
+    {
+      "cmd":
+        {
+          "type": "setparam",
+          "name": "goldprice",
+          "value": 100,
+        },
+      "other stuff": "ignored",
+    }
 
 ## CHI Transactions in Games <a name="currency"></a>
 
