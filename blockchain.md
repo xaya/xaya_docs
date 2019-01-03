@@ -51,19 +51,25 @@ input.**
 ## Basic Differences from Bitcoin
 
 Some of the basic chain parameters and properties of the genesis block
-in Xaya differ from those in Bitcoin and Namecoin.  In particular:
+in Xaya differ from those in Bitcoin and Namecoin.  Furthermore, some
+of these details were changed in the past with scheduled forks.
+The current parameters for `mainnet` are:
 
 * PoW mining is done based on [**triple-purpose mining**](mining.md).
 * The difficulty is updated for each block using the [**Dark Gravity Wave
   (DGW)**](https://github.com/xayaplatform/xaya/blob/a4ebc9b0daf72c79d3997901aadef0ca6bd01085/src/test/dualalgo_tests.cpp#L29)
   formula.
-* Blocks are scheduled to be produced every **30 seconds** instead of
-  every 10 minutes.  That is, once per minute for each of the two
-  possible [mining algorithms](mining.md).
-* The initial block reward is set to **1 CHI**, and halves every **4.2 million**
-  blocks, which corresponds to Bitcoin's halving of once every four years.
-  * This is the initial schedule, which will be updated after the
-    token sale to produce the correct total supply once it is determined.
+* Blocks are scheduled to be produced, on average, every **30 seconds**
+  instead of every 10 minutes.  Difficulty retargets independently for
+  each of the two possible [mining algorithms](mining.md).  Merge mined
+  SHA-256d blocks are scheduled once every two minutes and standalone
+  Neoscrypt blocks every 40 seconds.
+* The initial block reward is set to **3.82934346 CHI**,
+  and halves every **4.2 million** blocks, which corresponds to Bitcoin's
+  halving of once every four years.  This reward was chosen to yield the
+  [correct total coin
+  supply](https://github.com/xaya/xaya/issues/70#issuecomment-441292533)
+  following the token sale.
 * The genesis block's coinbase transaction pays to a multisig address owned
   by the Xaya team.  Unlike Bitcoin and Namecoin, it is actually spendable,
   and does not observe the usual "block maturity" rule.
