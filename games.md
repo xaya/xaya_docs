@@ -152,14 +152,11 @@ For instance, a game rule could be like this:
   1,000 CHI are sent to the company address Cxyz, **then** the player gets
   a diamond sword for her avatar in the game state.
 
-Note that there exists a second possibility for trading in games:  As the
-in-game account and ownership of items are associated with a player's `p/` name,
-the whole name can be traded for CHI outside of the game state (potentially
-using atomic name trading).  To transfer only some of a player's assets,
-a temporary name can be created, then selected in-game assets transferred to
-it in the game state, and then that temporary name can be traded.
-Both options for trading
-are viable, and can be used depending on the particular circumstances.
+Note that there exists a second possibility for trading in games:
+[Atomic name updates](trading.md) can be used to couple game moves
+(e.g. an explicit command to transfer an item) with payments in CHI.
+This is particularly useful for market places between players themselves,
+rather than payments to a game developer.
 
 ## Processing Backwards in Time <a name="undoing"></a>
 

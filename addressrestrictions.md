@@ -1,5 +1,9 @@
 # Address Restrictions
 
+**This proposal is obsolete, as trading should use
+[atomic name updates](trading.md) instead.  It is kept here for archival
+purposes only.**
+
 This document describes a proposed change to the network consensus rules
 leading to a *soft fork* of the Xaya blockchain.  The new rules allow
 placing **restrictions on receiving CHI on certain addresses**.  This
