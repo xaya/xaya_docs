@@ -1,3 +1,5 @@
+THIS IS OUTDATED INFORMATION GO HERE > https://github.com/xaya/xaya/tree/master/doc/xaya
+
 # Blockchain Consensus Protocol
 
 This document gives an overview of the low-level consensus protocol
