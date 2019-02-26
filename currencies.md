@@ -1,3 +1,5 @@
+THIS IS OUTDATED INFORMATION GO HERE > https://github.com/xaya/xaya/tree/master/doc/xaya
+
 # Xaya Currencies
 
 **Currencies** (custom tokens issued on the Xaya blockchain)
