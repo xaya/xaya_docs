@@ -1,3 +1,5 @@
+THIS IS OUTDATED INFORMATION GO HERE > https://github.com/xaya/xaya/tree/master/doc/xaya
+
 # Interface of the Xaya Core Daemon for Games
 
 The main interface of the Bitcoin Core daemon is through the various
