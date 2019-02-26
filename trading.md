@@ -1,3 +1,5 @@
+THIS IS OUTDATED INFORMATION GO HERE > https://github.com/xaya/xaya/tree/master/doc/xaya
+
 # Atomic Trading
 
 The ability to **trade in-game assets** (fungible game currencies as well as
