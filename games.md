@@ -1,3 +1,5 @@
+THIS IS OUTDATED INFORMATION GO HERE > https://github.com/xaya/xaya/tree/master/doc/xaya
+
 # Games on the Blockchain
 
 This document describes how games in Xaya are structured and how they interact
