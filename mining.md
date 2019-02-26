@@ -1,3 +1,5 @@
+THIS IS OUTDATED INFORMATION GO HERE > https://github.com/xaya/xaya/tree/master/doc/xaya
+
 # Triple-Purpose Mining
 
 Xaya is commited to proof-of-work (PoW) for securing its blockchain.  As there
